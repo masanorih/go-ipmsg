@@ -26,7 +26,7 @@ type ClientData struct {
 	Attach    bool
 }
 
-func NewClientData(msg string, addr *net.Addr) *ClientData {
+func NewClientData(msg string, addr *net.UDPAddr) *ClientData {
 	clientdata := &ClientData{}
 	if msg != "" {
 		clientdata.Parse(msg)
@@ -34,9 +34,22 @@ func NewClientData(msg string, addr *net.Addr) *ClientData {
 	return clientdata
 }
 
+func (c *ClientData) String() string {
+	str := fmt.Sprintf("%d:%d:%s:%s:%d:%s",
+		c.Version,
+		c.PacketNum,
+		c.User,
+		c.Host,
+		c.Command,
+		c.Option,
+	)
+	return str
+}
+
 func (c *ClientData) Parse(msg string) {
+	//pp.Println("msg=", msg)
 	s := strings.SplitN(msg, ":", 6)
-	//fmt.Println(s)
+	//pp.Println(s)
 	c.Version, _ = strconv.Atoi(s[0])
 	c.PacketNum, _ = strconv.Atoi(s[1])
 	c.User = s[2]

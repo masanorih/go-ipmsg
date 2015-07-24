@@ -1,14 +1,19 @@
 package ipmsg
 
 import (
+	"bytes"
+	"errors"
 	"fmt"
 	"net"
-	"os"
+	"time"
 )
 
 type IPMSG struct {
 	ClientData ClientData
 	Conn       *net.UDPConn
+	Conf       *IPMSGConfig
+	Broadcast  []net.IP
+	PacketNum  int
 }
 
 type IPMSGConfig struct {
@@ -16,56 +21,92 @@ type IPMSGConfig struct {
 	GroupName string
 	UserName  string
 	HostName  string
+	Port      int
 }
 
 const (
 	DefaultPort int = 2425
+	Buflen      int = 65535
 )
 
-func NewIPMSG(conf *IPMSGConfig) *IPMSG {
-	ipmsg := &IPMSG{}
+func NewIPMSGConf() *IPMSGConfig {
+	conf := &IPMSGConfig{
+		Port: DefaultPort,
+	}
+	return conf
+}
+
+func NewIPMSG(conf *IPMSGConfig) (*IPMSG, error) {
+	ipmsg := &IPMSG{
+		PacketNum: 0,
+	}
+	ipmsg.Conf = conf
 	// UDP server
-	service := fmt.Sprintf(":%s", DefaultPort)
+	service := fmt.Sprintf(":%v", conf.Port)
+	//fmt.Println("service = ", service)
 	udpAddr, err := net.ResolveUDPAddr("udp4", service)
-	checkError(err)
-	conn, err := net.ListenUDP("udp", udpAddr)
-	checkError(err)
-	ipmsg.Conn = conn
-	return ipmsg
-	//for {
-	//	handleClient(conn)
-	//}
-}
-
-func checkError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal Error ", err.Error())
-		os.Exit(1)
+		return ipmsg, err
 	}
+	conn, err := net.ListenUDP("udp", udpAddr)
+	if err != nil {
+		return ipmsg, err
+	}
+	ipmsg.Conn = conn
+	return ipmsg, err
 }
 
-/*
-	func handleClient(conn *net.UDPConn) {
-		var buf [512]byte
-		_, addr, err := conn.ReadFromUDP(buf[0:])
-		if err != nil {
-			return
-		}
-		daytime := time.Now().String()
-		conn.WriteToUDP([]byte(daytime), addr)
-	}
+func (ipmsg *IPMSG) SendMSG(msg string, addr *net.UDPAddr) error {
+	clientdata := NewClientData("", addr)
+	clientdata.Version = 1
+	clientdata.PacketNum = ipmsg.GetNewPacketNum()
+	clientdata.User = "user"
+	clientdata.Host = "host"
+	clientdata.Command = BR_ENTRY
+	clientdata.Option = msg
+	//pp.Println("clientdata.String=", clientdata.String())
 
-	// UDP client
-    service := os.Args[1]
-    udpAddr, err := net.ResolveUDPAddr("udp4", service)
-    checkError(err)
-    conn, err := net.DialUDP("udp", nil, udpAddr)
-    checkError(err)
-    _, err = conn.Write([]byte("anything"))
-    checkError(err)
-    var buf [512]byte
-    n, err := conn.Read(buf[0:])
-    checkError(err)
-    fmt.Println(string(buf[0:n]))
-    os.Exit(0)
-*/
+	conn := ipmsg.Conn
+	_, err := conn.WriteToUDP([]byte(clientdata.String()), addr)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (ipmsg *IPMSG) RecvMSG() (*ClientData, error) {
+	var buf [Buflen]byte
+	conn := ipmsg.Conn
+	_, addr, err := conn.ReadFromUDP(buf[0:])
+	if err != nil {
+		return nil, err
+	}
+	trimmed := bytes.Trim(buf[:], "\x00")
+	clientdata := NewClientData(string(trimmed[:]), addr)
+	return clientdata, nil
+	//return string(trimmed[:]), addr, nil
+}
+
+func (ipmsg *IPMSG) UDPAddr() (*net.UDPAddr, error) {
+	conn := ipmsg.Conn
+	if conn == nil {
+		err := errors.New("Conn is not defined")
+		return nil, err
+	}
+	addr := conn.LocalAddr()
+	network := addr.Network()
+	str := addr.String()
+	udpAddr, err := net.ResolveUDPAddr(network, str)
+	return udpAddr, err
+}
+
+func (ipmsg *IPMSG) AddBroadCast(ip net.IP) {
+	bc := ipmsg.Broadcast
+	bc = append(bc, ip)
+	ipmsg.Broadcast = bc
+}
+
+func (ipmsg *IPMSG) GetNewPacketNum() int {
+	ipmsg.PacketNum++
+	return int(time.Now().Unix()) + ipmsg.PacketNum
+}

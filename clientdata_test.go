@@ -6,7 +6,7 @@ import (
 )
 
 func TestParse(t *testing.T) {
-	addr := new(net.Addr)
+	addr := new(net.UDPAddr)
 	client := NewClientData("", addr)
 	//client.Parse("1:2:user:host:3:4")
 	client.Parse("1:2:user:host:3:nick\x00group\x00")

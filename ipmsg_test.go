@@ -1,8 +1,72 @@
 package ipmsg
 
 import (
+	"net"
 	"testing"
+
+	"github.com/k0kubun/pp"
 )
 
+func TestGetNewPackNum(t *testing.T) {
+	conf := NewIPMSGConf()
+	conf.Port++
+	ipmsg, err := NewIPMSG(conf)
+	if err != nil {
+		t.Errorf("ipmsg error is not nil '%v'", err)
+	}
+	if 0 != ipmsg.PacketNum {
+		t.Errorf("ipmsg.PacketNum should be 0 but '%v'", ipmsg.PacketNum)
+	}
+	num := ipmsg.GetNewPacketNum()
+	if num == 0 {
+		t.Errorf("ipmsg.GetNewPacketNum returns 0")
+	}
+	if 1 != ipmsg.PacketNum {
+		t.Errorf("ipmsg.PacketNum should be 1 but '%v'", ipmsg.PacketNum)
+	}
+}
+
 func TestNewIPMSG(t *testing.T) {
+	conf := NewIPMSGConf()
+	client, err := NewIPMSG(conf)
+	if err != nil {
+		t.Errorf("client error is not nil '%v'", err)
+	}
+
+	client.AddBroadCast(net.IPv4(255, 255, 255, 255))
+
+	serverConf := NewIPMSGConf()
+	serverConf.Port = 12425
+	server, err := NewIPMSG(serverConf)
+	if err != nil {
+		t.Errorf("server error is not nil '%v'", err)
+	}
+
+	sudp, err := server.UDPAddr()
+	if err != nil {
+		t.Errorf("failed to resolve to UDP '%v'", err)
+	}
+
+	// client sends message to server
+	testmsg := "hogehoge"
+	err = client.SendMSG(testmsg, sudp)
+	if err != nil {
+		t.Errorf("client.SendMSG return error '%v'", err)
+	}
+	// server receives message from client
+	received, err := server.RecvMSG()
+	//pp.Println("received = ", received)
+	if err != nil {
+		t.Errorf("server.RecvMSG return error '%v'", err)
+	}
+
+	if testmsg != received.Option {
+		//if testmsg != received {
+		t.Errorf("received is not much to sent msg")
+	}
+
+	//pp.Println("caddr     = ", caddr)
+	//pp.Println("saddr     = ", saddr)
+	//pp.Println("sudp      = ", sudp)
+	pp.Println("received  = ", received)
 }
