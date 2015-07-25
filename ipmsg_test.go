@@ -29,6 +29,10 @@ func TestGetNewPackNum(t *testing.T) {
 
 func TestNewIPMSG(t *testing.T) {
 	conf := NewIPMSGConf()
+	conf.NickName = "testuser"
+	conf.GroupName = "testgroup"
+	conf.UserName = "testuser"
+	conf.HostName = "testhost"
 	client, err := NewIPMSG(conf)
 	if err != nil {
 		t.Errorf("client error is not nil '%v'", err)

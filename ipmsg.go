@@ -42,7 +42,7 @@ func NewIPMSG(conf *IPMSGConfig) (*IPMSG, error) {
 	}
 	ipmsg.Conf = conf
 	// UDP server
-	service := fmt.Sprintf(":%v", conf.Port)
+	service := fmt.Sprintf(":%d", conf.Port)
 	//fmt.Println("service = ", service)
 	udpAddr, err := net.ResolveUDPAddr("udp4", service)
 	if err != nil {
@@ -66,16 +66,20 @@ func (ipmsg *IPMSG) Close() error {
 	return err
 }
 
-func (ipmsg *IPMSG) SendMSG(msg string, addr *net.UDPAddr) error {
+func (ipmsg *IPMSG) BuildData(msg string, addr *net.UDPAddr) *ClientData {
+	conf := ipmsg.Conf
 	clientdata := NewClientData("", addr)
 	clientdata.Version = 1
 	clientdata.PacketNum = ipmsg.GetNewPacketNum()
-	clientdata.User = "user"
-	clientdata.Host = "host"
+	clientdata.User = conf.UserName
+	clientdata.Host = conf.HostName
 	clientdata.Command = BR_ENTRY
 	clientdata.Option = msg
-	//pp.Println("clientdata.String=", clientdata.String())
+	return clientdata
+}
 
+func (ipmsg *IPMSG) SendMSG(msg string, addr *net.UDPAddr) error {
+	clientdata := ipmsg.BuildData(msg, addr)
 	conn := ipmsg.Conn
 	_, err := conn.WriteToUDP([]byte(clientdata.String()), addr)
 	if err != nil {
