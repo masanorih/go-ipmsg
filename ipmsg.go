@@ -56,6 +56,16 @@ func NewIPMSG(conf *IPMSGConfig) (*IPMSG, error) {
 	return ipmsg, err
 }
 
+func (ipmsg *IPMSG) Close() error {
+	conn := ipmsg.Conn
+	if conn == nil {
+		err := errors.New("Conn is not defined")
+		return err
+	}
+	err := conn.Close()
+	return err
+}
+
 func (ipmsg *IPMSG) SendMSG(msg string, addr *net.UDPAddr) error {
 	clientdata := NewClientData("", addr)
 	clientdata.Version = 1
@@ -87,6 +97,7 @@ func (ipmsg *IPMSG) RecvMSG() (*ClientData, error) {
 	//return string(trimmed[:]), addr, nil
 }
 
+// convert net.Addr to net.UDPAddr
 func (ipmsg *IPMSG) UDPAddr() (*net.UDPAddr, error) {
 	conn := ipmsg.Conn
 	if conn == nil {

@@ -9,11 +9,12 @@ import (
 
 func TestGetNewPackNum(t *testing.T) {
 	conf := NewIPMSGConf()
-	conf.Port++
 	ipmsg, err := NewIPMSG(conf)
 	if err != nil {
 		t.Errorf("ipmsg error is not nil '%v'", err)
 	}
+	defer ipmsg.Close()
+
 	if 0 != ipmsg.PacketNum {
 		t.Errorf("ipmsg.PacketNum should be 0 but '%v'", ipmsg.PacketNum)
 	}
@@ -32,6 +33,7 @@ func TestNewIPMSG(t *testing.T) {
 	if err != nil {
 		t.Errorf("client error is not nil '%v'", err)
 	}
+	defer client.Close()
 
 	client.AddBroadCast(net.IPv4(255, 255, 255, 255))
 
