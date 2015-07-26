@@ -13,7 +13,7 @@ type ClientData struct {
 	PacketNum int
 	User      string
 	Host      string
-	Command   Message
+	Command   Command
 	Option    string
 	Nick      string
 	Group     string
@@ -55,7 +55,7 @@ func (c *ClientData) Parse(msg string) {
 	c.User = s[2]
 	c.Host = s[3]
 	cmd, _ := strconv.Atoi(s[4])
-	c.Command = Message(cmd)
+	c.Command = Command(cmd)
 	c.Option = s[5]
 	c.Time = time.Now()
 	//pp.Println(c)
