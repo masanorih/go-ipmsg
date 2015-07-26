@@ -55,7 +55,7 @@ func TestNewIPMSG(t *testing.T) {
 
 	// client sends message to server
 	testmsg := "hogehoge"
-	err = client.SendMSG(testmsg, sudp)
+	err = client.SendMSG(sudp, testmsg, BR_ENTRY)
 	if err != nil {
 		t.Errorf("client.SendMSG return error '%v'", err)
 	}

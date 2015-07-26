@@ -66,20 +66,20 @@ func (ipmsg *IPMSG) Close() error {
 	return err
 }
 
-func (ipmsg *IPMSG) BuildData(msg string, addr *net.UDPAddr) *ClientData {
+func (ipmsg *IPMSG) BuildData(addr *net.UDPAddr, msg string, cmd Command) *ClientData {
 	conf := ipmsg.Conf
 	clientdata := NewClientData("", addr)
 	clientdata.Version = 1
 	clientdata.PacketNum = ipmsg.GetNewPacketNum()
 	clientdata.User = conf.UserName
 	clientdata.Host = conf.HostName
-	clientdata.Command = BR_ENTRY
+	clientdata.Command = cmd
 	clientdata.Option = msg
 	return clientdata
 }
 
-func (ipmsg *IPMSG) SendMSG(msg string, addr *net.UDPAddr) error {
-	clientdata := ipmsg.BuildData(msg, addr)
+func (ipmsg *IPMSG) SendMSG(addr *net.UDPAddr, msg string, cmd Command) error {
+	clientdata := ipmsg.BuildData(addr, msg, cmd)
 	conn := ipmsg.Conn
 	_, err := conn.WriteToUDP([]byte(clientdata.String()), addr)
 	if err != nil {
@@ -98,7 +98,6 @@ func (ipmsg *IPMSG) RecvMSG() (*ClientData, error) {
 	trimmed := bytes.Trim(buf[:], "\x00")
 	clientdata := NewClientData(string(trimmed[:]), addr)
 	return clientdata, nil
-	//return string(trimmed[:]), addr, nil
 }
 
 // convert net.Addr to net.UDPAddr

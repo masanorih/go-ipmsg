@@ -17,8 +17,7 @@ type ClientData struct {
 	Option    string
 	Nick      string
 	Group     string
-	PeerAddr  string
-	PeerPort  string
+	Netstr    string
 	ListAddr  string
 	Time      time.Time
 	PubKey    string
@@ -27,7 +26,9 @@ type ClientData struct {
 }
 
 func NewClientData(msg string, addr *net.UDPAddr) *ClientData {
-	clientdata := &ClientData{}
+	clientdata := &ClientData{
+		Netstr: addr.String(),
+	}
 	if msg != "" {
 		clientdata.Parse(msg)
 	}
@@ -94,5 +95,5 @@ func (c ClientData) NickName() string {
 }
 
 func (c ClientData) Key() string {
-	return fmt.Sprintf("%s@%s:%s", c.User, c.PeerAddr, c.PeerPort)
+	return fmt.Sprintf("%s@%s", c.User, c.Netstr)
 }
