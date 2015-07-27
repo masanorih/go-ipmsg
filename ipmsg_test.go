@@ -47,6 +47,7 @@ func TestNewIPMSG(t *testing.T) {
 	if err != nil {
 		t.Errorf("server error is not nil '%v'", err)
 	}
+	defer server.Close()
 
 	sudp, err := server.UDPAddr()
 	if err != nil {
@@ -70,9 +71,5 @@ func TestNewIPMSG(t *testing.T) {
 		//if testmsg != received {
 		t.Errorf("received is not much to sent msg")
 	}
-
-	//pp.Println("caddr     = ", caddr)
-	//pp.Println("saddr     = ", saddr)
-	//pp.Println("sudp      = ", sudp)
 	pp.Println("received  = ", received)
 }
