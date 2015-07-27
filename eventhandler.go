@@ -12,29 +12,27 @@ type EventHandler struct {
 func (ev *EventHandler) Debug() {
 }
 
-func (ev EventHandler) Run(cd *ClientData) error {
+func (ev EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
 	cmdstr := cd.Command.String()
 	v := reflect.ValueOf(&ev)
 	method := v.MethodByName(cmdstr)
-	//pp.Println("Type=", method.Type())
 	if !method.IsValid() {
 		err := fmt.Errorf("method for cmdstr(%v) not defined", cmdstr)
 		return err
 	}
 	//pp.Println("method=", method)
-	//method.Call([]reflect.Value{})
-	in := []reflect.Value{reflect.ValueOf(cd)}
+	in := []reflect.Value{reflect.ValueOf(cd), reflect.ValueOf(ipmsg)}
 	err := method.Call(in)[0].Interface()
 	// XXX only works if you are sure about the return value is always type(error)
 	if err == nil {
 		return nil
 	}
 	return err.(error)
-
 	//reflect.ValueOf(&ev).MethodByName(cmdstr).Call(in)
 }
 
-func (ev *EventHandler) BR_ENTRY(cd *ClientData) error {
+func (ev *EventHandler) BR_ENTRY(cd *ClientData, ipmsg *IPMSG) error {
+	ipmsg.SendMSG(cd.Addr, ipmsg.Myinfo(), ANSENTRY)
 	//pp.Println("BR_ENTRY in=", cd)
 	return nil
 }

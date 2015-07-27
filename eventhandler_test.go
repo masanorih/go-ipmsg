@@ -17,13 +17,13 @@ func TestEventHander(t *testing.T) {
 
 	ev := EventHandler{}
 	clientdata := ipmsg.BuildData(addr, "hogehoge", BR_ENTRY)
-	err = ev.Run(clientdata)
+	err = ev.Run(clientdata, ipmsg)
 	if err != nil {
 		t.Errorf("ev.Run(BR_ENTRY) failed with '%v'", err)
 	}
 
 	clientdata = ipmsg.BuildData(addr, "hogehoge", BR_EXIT)
-	err = ev.Run(clientdata)
+	err = ev.Run(clientdata, ipmsg)
 	if err == nil {
 		t.Errorf("ev.Run(BR_EXIT) do not fail")
 	}

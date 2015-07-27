@@ -101,7 +101,7 @@ func (ipmsg *IPMSG) RecvMSG() (*ClientData, error) {
 	ev := ipmsg.EventHandler
 	for _, v := range ev {
 		v.Debug()
-		v.Run(clientdata)
+		v.Run(clientdata, ipmsg)
 	}
 	return clientdata, nil
 }
@@ -135,4 +135,9 @@ func (ipmsg *IPMSG) AddBroadCast(ip net.IP) {
 func (ipmsg *IPMSG) GetNewPacketNum() int {
 	ipmsg.PacketNum++
 	return int(time.Now().Unix()) + ipmsg.PacketNum
+}
+
+func (ipmsg *IPMSG) Myinfo() string {
+	conf := ipmsg.Conf
+	return fmt.Sprintf("%v\x00%v\x00", conf.NickName, conf.GroupName)
 }
