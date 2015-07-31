@@ -39,8 +39,8 @@ func TestEventHander(t *testing.T) {
 
 	clientdata = ipmsg.BuildData(addr, "hogehoge", BR_EXIT)
 	err = ev.Run(clientdata, ipmsg)
-	if err == nil {
-		t.Errorf("ev.Run(BR_EXIT) should fail")
+	if err != nil {
+		t.Errorf("ev.Run(BR_EXIT) is not defined and should not fail")
 	}
 
 	clientdata = ipmsg.BuildData(addr, "hogehoge", SENDMSG)

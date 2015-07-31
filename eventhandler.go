@@ -21,11 +21,12 @@ func (ev *EventHandler) Regist(cmd Command, evfunc EvFunc) {
 }
 
 func (ev *EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
-	cmd := cd.Command
+	cmd := cd.Command.Mode()
 	evfunc := ev.Handlers[cmd]
 	if evfunc == nil {
-		err := fmt.Errorf("func for Command(%v) not defined", cmd.String())
-		return err
+		//err := fmt.Errorf("func for Command(%v) not defined", cmd.String())
+		//return err
+		return nil // just do nothing when handler is undefined
 	} else {
 		return (evfunc(cd, ipmsg))
 	}
@@ -33,7 +34,7 @@ func (ev *EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
 }
 
 func (ev *EventHandler) Debug(cd *ClientData) {
-	cmdstr := cd.Command.String()
+	cmdstr := cd.Command.Mode().String()
 	fmt.Println("EventHandler.Debug cmdstr=", cmdstr)
 	fmt.Println("EventHandler.Debug key=", cd.Key())
 }

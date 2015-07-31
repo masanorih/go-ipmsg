@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"os/user"
 
 	"github.com/Songmu/prompter"
 	"github.com/k0kubun/pp"
@@ -14,6 +15,19 @@ var commands = []string{"help", "quit", "join", "list"}
 
 func main() {
 	conf := goipmsg.NewIPMSGConf()
+	user, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	conf.UserName = user.Username
+	conf.NickName = user.Username
+	conf.GroupName = user.Gid
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+	conf.HostName = hostname
+
 	ipmsg, err := goipmsg.NewIPMSG(conf)
 	if err != nil {
 		panic(err)
@@ -58,6 +72,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
+			//pp.Println("recv=", cd.String())
 			recv <- cd.Option
 		}
 	}()
@@ -90,7 +105,9 @@ func ListUp(ipmsg *goipmsg.IPMSG) {
 // Join sends BR_ENTRY packet to the broadcast address
 func Join(ipmsg *goipmsg.IPMSG) {
 	addr := brAddr(ipmsg)
-	err := ipmsg.SendMSG(addr, ipmsg.Myinfo(), goipmsg.BR_ENTRY)
+	cmd := goipmsg.BR_ENTRY
+	cmd.SetOpt(goipmsg.BROADCAST)
+	err := ipmsg.SendMSG(addr, ipmsg.Myinfo(), cmd)
 	if err != nil {
 		panic(err)
 	}
