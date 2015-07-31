@@ -2,9 +2,9 @@ package ipmsg
 
 import "testing"
 
-func RECEIVE_BR_ENTRY(cd *ClientData, ipmsg *IPMSG) {
+func func_BR_ENTRY(cd *ClientData, ipmsg *IPMSG) error {
 	ipmsg.SendMSG(cd.Addr, ipmsg.Myinfo(), ANSENTRY)
-	//return nil
+	return nil
 }
 
 func TestEventHander(t *testing.T) {
@@ -21,7 +21,7 @@ func TestEventHander(t *testing.T) {
 	}
 
 	ev := NewEventHandler()
-	ev.Regist(BR_ENTRY, RECEIVE_BR_ENTRY)
+	ev.Regist(BR_ENTRY, func_BR_ENTRY)
 	clientdata := ipmsg.BuildData(addr, "hogehoge", BR_ENTRY)
 	err = ev.Run(clientdata, ipmsg)
 	if err != nil {

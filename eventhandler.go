@@ -2,32 +2,32 @@ package ipmsg
 
 import "fmt"
 
+type EvFunc func(cd *ClientData, ipmsg *IPMSG) error
 type EventHandler struct {
 	String   string
-	Handlers map[Command]func(cd *ClientData, ipmsg *IPMSG)
+	Handlers map[Command]EvFunc
 }
 
 func NewEventHandler() *EventHandler {
 	ev := &EventHandler{
-		Handlers: make(map[Command]func(cd *ClientData, ipmsg *IPMSG)),
+		Handlers: make(map[Command]EvFunc),
 	}
 	return ev
 }
 
-func (ev *EventHandler) Regist(cmd Command, handler func(cd *ClientData, ipmsg *IPMSG)) {
-	//cmdstr := cmd.String()
+func (ev *EventHandler) Regist(cmd Command, evfunc EvFunc) {
 	handlers := ev.Handlers
-	handlers[cmd] = handler
+	handlers[cmd] = evfunc
 }
 
 func (ev *EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
 	cmd := cd.Command
-	handler := ev.Handlers[cmd]
-	if handler == nil {
+	evfunc := ev.Handlers[cmd]
+	if evfunc == nil {
 		err := fmt.Errorf("func for Command(%v) not defined", cmd.String())
 		return err
 	} else {
-		handler(cd, ipmsg)
+		evfunc(cd, ipmsg)
 	}
 	return nil
 }
