@@ -13,7 +13,7 @@ type IPMSG struct {
 	Conn       *net.UDPConn
 	Conf       *IPMSGConfig
 	Broadcast  []net.IP
-	Handlers   []EventHandler
+	Handlers   []*EventHandler
 	PacketNum  int
 }
 
@@ -100,10 +100,7 @@ func (ipmsg *IPMSG) RecvMSG() (*ClientData, error) {
 	clientdata := NewClientData(string(trimmed[:]), addr)
 
 	handlers := ipmsg.Handlers
-	//pp.Println("clientdata=", clientdata)
-	//pp.Println("handlers=", handlers)
 	for _, v := range handlers {
-		//pp.Println("v=", v)
 		v.Debug(clientdata)
 		v.Run(clientdata, ipmsg)
 	}
@@ -125,7 +122,7 @@ func (ipmsg *IPMSG) UDPAddr() (*net.UDPAddr, error) {
 	return udpAddr, err
 }
 
-func (ipmsg *IPMSG) AddEventHandler(ev EventHandler) {
+func (ipmsg *IPMSG) AddEventHandler(ev *EventHandler) {
 	sl := ipmsg.Handlers
 	sl = append(sl, ev)
 	ipmsg.Handlers = sl

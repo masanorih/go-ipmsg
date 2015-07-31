@@ -2,6 +2,11 @@ package ipmsg
 
 import "testing"
 
+func RECEIVE_BR_ENTRY(cd *ClientData, ipmsg *IPMSG) {
+	ipmsg.SendMSG(cd.Addr, ipmsg.Myinfo(), ANSENTRY)
+	//return nil
+}
+
 func TestEventHander(t *testing.T) {
 	conf := NewIPMSGConf()
 	ipmsg, err := NewIPMSG(conf)
@@ -15,7 +20,8 @@ func TestEventHander(t *testing.T) {
 		t.Errorf("failed to resolve to UDP '%v'", err)
 	}
 
-	ev := EventHandler{}
+	ev := NewEventHandler()
+	ev.Regist(BR_ENTRY, RECEIVE_BR_ENTRY)
 	clientdata := ipmsg.BuildData(addr, "hogehoge", BR_ENTRY)
 	err = ev.Run(clientdata, ipmsg)
 	if err != nil {
@@ -25,7 +31,7 @@ func TestEventHander(t *testing.T) {
 	clientdata = ipmsg.BuildData(addr, "hogehoge", BR_EXIT)
 	err = ev.Run(clientdata, ipmsg)
 	if err == nil {
-		t.Errorf("ev.Run(BR_EXIT) do not fail")
+		t.Errorf("ev.Run(BR_EXIT) should fail")
 	}
 }
 
@@ -37,11 +43,10 @@ func TestAddEventHandler(t *testing.T) {
 	}
 	defer ipmsg.Close()
 
-	ev := EventHandler{String: "TestAddEventHandler"}
+	ev := NewEventHandler()
+	ev.String = "TestAddEventHandler"
 	ipmsg.AddEventHandler(ev)
-	//pp.Println("ipmsg.Handlers=", ipmsg.Handlers)
 
-	//clientdata := ipmsg.BuildData(addr, "hogehoge", BR_ENTRY)
 	addr, err := ipmsg.UDPAddr()
 	if err != nil {
 		t.Errorf("ipmsg.UDPAddr() has err '%v'", err)
@@ -58,8 +63,4 @@ func TestAddEventHandler(t *testing.T) {
 	if recv == nil {
 		t.Errorf("recv is nil")
 	}
-	//pp.Println("recv=", recv)
-	//if recv != "TestAddEventHandler" {
-	//	t.Errorf("received message is not what I sent")
-	//}
 }

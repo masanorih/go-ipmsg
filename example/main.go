@@ -18,7 +18,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	ev := goipmsg.EventHandler{}
+	ev := goipmsg.NewEventHandler()
+	ev.Regist(goipmsg.BR_ENTRY, RECEIVE_BR_ENTRY)
 	ipmsg.AddEventHandler(ev)
 
 	input := make(chan string)
@@ -65,6 +66,7 @@ func main() {
 	os.Exit(1)
 }
 
+// Switchinput dispatches actions via input
 func SwitchInput(ipmsg *goipmsg.IPMSG, input string, quit chan string) {
 	switch input {
 	case "help":
@@ -80,10 +82,12 @@ func SwitchInput(ipmsg *goipmsg.IPMSG, input string, quit chan string) {
 	}
 }
 
+// Listup printout known users
 func ListUp(ipmsg *goipmsg.IPMSG) {
 	fmt.Println("list up known users")
 }
 
+// Join sends BR_ENTRY packet to the broadcast address
 func Join(ipmsg *goipmsg.IPMSG) {
 	addr := brAddr(ipmsg)
 	err := ipmsg.SendMSG(addr, ipmsg.Myinfo(), goipmsg.BR_ENTRY)
@@ -93,6 +97,7 @@ func Join(ipmsg *goipmsg.IPMSG) {
 	fmt.Println("sent BR_ENTRY")
 }
 
+// brAddr retrieves broadcast address
 func brAddr(ipmsg *goipmsg.IPMSG) *net.UDPAddr {
 	//broadcast := net.IPv4(203, 181, 79, 127) //net.IP
 	broadcast := net.IPv4(255, 255, 255, 255) //net.IP
