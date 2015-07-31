@@ -3,8 +3,6 @@ package ipmsg
 import (
 	"net"
 	"testing"
-
-	"github.com/k0kubun/pp"
 )
 
 func TestGetNewPackNum(t *testing.T) {
@@ -71,5 +69,5 @@ func TestNewIPMSG(t *testing.T) {
 		//if testmsg != received {
 		t.Errorf("received is not much to sent msg")
 	}
-	pp.Println("received  = ", received)
+	//pp.Println("received  = ", received)
 }

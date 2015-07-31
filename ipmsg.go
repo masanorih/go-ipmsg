@@ -9,12 +9,12 @@ import (
 )
 
 type IPMSG struct {
-	ClientData   ClientData
-	Conn         *net.UDPConn
-	Conf         *IPMSGConfig
-	Broadcast    []net.IP
-	EventHandler []EventHandler
-	PacketNum    int
+	ClientData ClientData
+	Conn       *net.UDPConn
+	Conf       *IPMSGConfig
+	Broadcast  []net.IP
+	Handlers   []EventHandler
+	PacketNum  int
 }
 
 type IPMSGConfig struct {
@@ -98,9 +98,13 @@ func (ipmsg *IPMSG) RecvMSG() (*ClientData, error) {
 	}
 	trimmed := bytes.Trim(buf[:], "\x00")
 	clientdata := NewClientData(string(trimmed[:]), addr)
-	ev := ipmsg.EventHandler
-	for _, v := range ev {
-		v.Debug()
+
+	handlers := ipmsg.Handlers
+	//pp.Println("clientdata=", clientdata)
+	//pp.Println("handlers=", handlers)
+	for _, v := range handlers {
+		//pp.Println("v=", v)
+		v.Debug(clientdata)
 		v.Run(clientdata, ipmsg)
 	}
 	return clientdata, nil
@@ -116,14 +120,15 @@ func (ipmsg *IPMSG) UDPAddr() (*net.UDPAddr, error) {
 	addr := conn.LocalAddr()
 	network := addr.Network()
 	str := addr.String()
+	//fmt.Println("str =", str)
 	udpAddr, err := net.ResolveUDPAddr(network, str)
 	return udpAddr, err
 }
 
 func (ipmsg *IPMSG) AddEventHandler(ev EventHandler) {
-	sl := ipmsg.EventHandler
+	sl := ipmsg.Handlers
 	sl = append(sl, ev)
-	ipmsg.EventHandler = sl
+	ipmsg.Handlers = sl
 }
 
 func (ipmsg *IPMSG) AddBroadCast(ip net.IP) {
