@@ -1,10 +1,18 @@
 package ipmsg
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func func_BR_ENTRY(cd *ClientData, ipmsg *IPMSG) error {
 	ipmsg.SendMSG(cd.Addr, ipmsg.Myinfo(), ANSENTRY)
 	return nil
+}
+
+func func_SENDMSG(cd *ClientData, ipmsg *IPMSG) error {
+	err := fmt.Errorf("DUMMY error")
+	return err
 }
 
 func TestEventHander(t *testing.T) {
@@ -22,6 +30,7 @@ func TestEventHander(t *testing.T) {
 
 	ev := NewEventHandler()
 	ev.Regist(BR_ENTRY, func_BR_ENTRY)
+	ev.Regist(SENDMSG, func_SENDMSG)
 	clientdata := ipmsg.BuildData(addr, "hogehoge", BR_ENTRY)
 	err = ev.Run(clientdata, ipmsg)
 	if err != nil {
@@ -32,6 +41,12 @@ func TestEventHander(t *testing.T) {
 	err = ev.Run(clientdata, ipmsg)
 	if err == nil {
 		t.Errorf("ev.Run(BR_EXIT) should fail")
+	}
+
+	clientdata = ipmsg.BuildData(addr, "hogehoge", SENDMSG)
+	err = ev.Run(clientdata, ipmsg)
+	if err == nil {
+		t.Errorf("ev.Run(SENDMSG) should fail")
 	}
 }
 
@@ -44,6 +59,7 @@ func TestAddEventHandler(t *testing.T) {
 	defer ipmsg.Close()
 
 	ev := NewEventHandler()
+	ev.Regist(BR_ENTRY, func_BR_ENTRY)
 	ev.String = "TestAddEventHandler"
 	ipmsg.AddEventHandler(ev)
 

@@ -27,7 +27,7 @@ func (ev *EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
 		err := fmt.Errorf("func for Command(%v) not defined", cmd.String())
 		return err
 	} else {
-		evfunc(cd, ipmsg)
+		return (evfunc(cd, ipmsg))
 	}
 	return nil
 }
