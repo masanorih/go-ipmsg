@@ -101,7 +101,6 @@ func (ipmsg *IPMSG) RecvMSG() (*ClientData, error) {
 
 	handlers := ipmsg.Handlers
 	for _, v := range handlers {
-		v.Debug(clientdata)
 		err := v.Run(clientdata, ipmsg)
 		if err != nil {
 			return clientdata, err

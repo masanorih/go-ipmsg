@@ -83,6 +83,7 @@ func setup() *goipmsg.IPMSG {
 	}
 
 	ev := goipmsg.NewEventHandler()
+	ev.Debug = false
 	// those are defined at handler.go
 	ev.Regist(goipmsg.BR_ENTRY, RECEIVE_BR_ENTRY)
 	ev.Regist(goipmsg.ANSENTRY, RECEIVE_ANSENTRY)

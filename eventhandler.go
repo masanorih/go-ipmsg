@@ -6,6 +6,7 @@ type EvFunc func(cd *ClientData, ipmsg *IPMSG) error
 type EventHandler struct {
 	String   string
 	Handlers map[Command]EvFunc
+	Debug    bool
 }
 
 func NewEventHandler() *EventHandler {
@@ -21,6 +22,9 @@ func (ev *EventHandler) Regist(cmd Command, evfunc EvFunc) {
 }
 
 func (ev *EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
+	if ev.Debug {
+		ev.RunDebug(cd)
+	}
 	cmd := cd.Command.Mode()
 	evfunc := ev.Handlers[cmd]
 	if evfunc == nil {
@@ -33,10 +37,10 @@ func (ev *EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
 	return nil
 }
 
-func (ev *EventHandler) Debug(cd *ClientData) {
+func (ev *EventHandler) RunDebug(cd *ClientData) {
 	cmdstr := cd.Command.Mode().String()
-	fmt.Println("EventHandler.Debug cmdstr=", cmdstr)
-	fmt.Println("EventHandler.Debug key=", cd.Key())
+	fmt.Println("EventHandler.RunDebug cmdstr=", cmdstr)
+	fmt.Println("EventHandler.RunDebug key=", cd.Key())
 }
 
 //func (ev EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
