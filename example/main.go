@@ -14,27 +14,7 @@ import (
 var commands = []string{"help", "quit", "join", "list"}
 
 func main() {
-	conf := goipmsg.NewIPMSGConf()
-	user, err := user.Current()
-	if err != nil {
-		panic(err)
-	}
-	conf.UserName = user.Username
-	conf.NickName = user.Username
-	conf.GroupName = user.Gid
-	hostname, err := os.Hostname()
-	if err != nil {
-		panic(err)
-	}
-	conf.HostName = hostname
-
-	ipmsg, err := goipmsg.NewIPMSG(conf)
-	if err != nil {
-		panic(err)
-	}
-	ev := goipmsg.NewEventHandler()
-	ev.Regist(goipmsg.BR_ENTRY, RECEIVE_BR_ENTRY)
-	ipmsg.AddEventHandler(ev)
+	ipmsg := setup()
 
 	input := make(chan string)
 	next := make(chan string)
@@ -81,6 +61,35 @@ func main() {
 	os.Exit(1)
 }
 
+func setup() *goipmsg.IPMSG {
+	conf := goipmsg.NewIPMSGConf()
+	user, err := user.Current()
+	if err != nil {
+		panic(err)
+	}
+	conf.UserName = user.Username
+	conf.NickName = user.Username
+	conf.GroupName = user.Gid
+	hostname, err := os.Hostname()
+	if err != nil {
+		panic(err)
+	}
+	conf.HostName = hostname
+
+	ipmsg, err := goipmsg.NewIPMSG(conf)
+	if err != nil {
+		panic(err)
+	}
+
+	ev := goipmsg.NewEventHandler()
+	// those are defined at handler.go
+	ev.Regist(goipmsg.BR_ENTRY, RECEIVE_BR_ENTRY)
+	ev.Regist(goipmsg.ANSENTRY, RECEIVE_ANSENTRY)
+	ipmsg.AddEventHandler(ev)
+
+	return ipmsg
+}
+
 // Switchinput dispatches actions via input
 func SwitchInput(ipmsg *goipmsg.IPMSG, input string, quit chan string) {
 	switch input {
@@ -99,7 +108,10 @@ func SwitchInput(ipmsg *goipmsg.IPMSG, input string, quit chan string) {
 
 // Listup printout known users
 func ListUp(ipmsg *goipmsg.IPMSG) {
-	fmt.Println("list up known users")
+	for k, _ := range Userlist {
+		//fmt.Printf("%v=%v\n", k, v.String())
+		fmt.Println(k)
+	}
 }
 
 // Join sends BR_ENTRY packet to the broadcast address
