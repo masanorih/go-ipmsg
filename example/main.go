@@ -5,13 +5,14 @@ import (
 	"net"
 	"os"
 	"os/user"
+	"strconv"
 
 	"github.com/Songmu/prompter"
 	"github.com/k0kubun/pp"
 	goipmsg "github.com/masanorih/go-ipmsg"
 )
 
-var commands = []string{"help", "quit", "join", "list"}
+var commands = []string{"help", "quit", "join", "list", "send", "read"}
 
 func main() {
 	ipmsg := setup()
@@ -39,7 +40,7 @@ func main() {
 			input <- (&prompter.Prompter{
 				Choices:    commands,
 				Default:    "list",
-				Message:    "ipmsg> ",
+				Message:    "ipmsg>",
 				IgnoreCase: true,
 			}).Prompt()
 			<-next
@@ -85,6 +86,7 @@ func setup() *goipmsg.IPMSG {
 	// those are defined at handler.go
 	ev.Regist(goipmsg.BR_ENTRY, RECEIVE_BR_ENTRY)
 	ev.Regist(goipmsg.ANSENTRY, RECEIVE_ANSENTRY)
+	ev.Regist(goipmsg.SENDMSG, RECEIVE_SENDMSG)
 	ipmsg.AddEventHandler(ev)
 
 	return ipmsg
@@ -94,7 +96,13 @@ func setup() *goipmsg.IPMSG {
 func SwitchInput(ipmsg *goipmsg.IPMSG, input string, quit chan string) {
 	switch input {
 	case "help":
-		fmt.Println("help usage here")
+		fmt.Println("usage:")
+		fmt.Println("\thelp: show this help.")
+		fmt.Println("\tquit: quit this programme.")
+		fmt.Println("\tjoin: let others know U.")
+		fmt.Println("\tlist: list up users U know.")
+		fmt.Println("\tsend: send message to user.")
+		fmt.Println("\tread: read received message.")
 	case "quit":
 		fmt.Println("quitting...")
 		ipmsg.Close()
@@ -102,15 +110,74 @@ func SwitchInput(ipmsg *goipmsg.IPMSG, input string, quit chan string) {
 	case "join":
 		Join(ipmsg)
 	case "list":
-		ListUp(ipmsg)
+		List(ipmsg)
+	case "send":
+		Send(ipmsg)
+	case "read":
+		Read(ipmsg)
 	}
 }
 
-// Listup printout known users
-func ListUp(ipmsg *goipmsg.IPMSG) {
-	for k, _ := range Userlist {
-		//fmt.Printf("%v=%v\n", k, v.String())
-		fmt.Println(k)
+func Read(ipmsg *goipmsg.IPMSG) {
+	if len(Messages) == 0 {
+		fmt.Println("There is no message to read.")
+	} else {
+		for _, v := range Messages {
+			fmt.Printf("From: %v\n", v.Key())
+			fmt.Printf("Date: %v\n", v.Time)
+			fmt.Printf("Message: %v\n\n", v.Option)
+		}
+		// clear all datas
+		Messages = []*goipmsg.ClientData{}
+	}
+}
+
+// Send get specified user from prompt and actually send it to the target
+func Send(ipmsg *goipmsg.IPMSG) {
+	userIdx := []string{}
+	i := 0
+	m := make(map[int]string)
+	for k, _ := range Users {
+		i++
+		fmt.Printf("%d %v\n", i, k)
+		userIdx = append(userIdx, strconv.Itoa(i))
+		m[i] = k
+	}
+
+	chosen := (&prompter.Prompter{
+		Choices:    userIdx,
+		UseDefault: false,
+		Message:    "Choose the user to send message>",
+		IgnoreCase: true,
+	}).Prompt()
+	i, _ = strconv.Atoi(chosen)
+	key := m[i]
+
+	promptMessage := fmt.Sprintf("Enter message(to %v)", key)
+	message := prompter.Prompt(promptMessage, "")
+	cd := Users[key]
+	addr := cd.Addr
+
+	cmd := goipmsg.SENDMSG
+	cmd.SetOpt(goipmsg.SECRET)
+	err := ipmsg.SendMSG(addr, message, cmd)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("sent SENDMSG")
+}
+
+// List print out known users
+func List(ipmsg *goipmsg.IPMSG) {
+	if len(Users) == 0 {
+		fmt.Println("There is no users.")
+	} else {
+		fmt.Println("known users below.")
+		i := 0
+		for k, _ := range Users {
+			i++
+			fmt.Printf("\t%d %v\n", i, k)
+		}
 	}
 }
 
