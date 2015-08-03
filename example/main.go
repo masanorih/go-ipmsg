@@ -196,11 +196,9 @@ func Join(ipmsg *goipmsg.IPMSG) {
 
 // brAddr retrieves broadcast address
 func brAddr(ipmsg *goipmsg.IPMSG) *net.UDPAddr {
-	//broadcast := net.IPv4(203, 181, 79, 127) //net.IP
-	broadcast := net.IPv4(255, 255, 255, 255) //net.IP
+	broadcast := net.IPv4(255, 255, 255, 255)
 	port := ipmsg.Conf.Port
 	str := fmt.Sprintf("%v:%d", broadcast.String(), port)
-	//fmt.Println("str=", str)
 	udpAddr, err := net.ResolveUDPAddr("udp4", str)
 	if err != nil {
 		panic(err)

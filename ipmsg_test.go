@@ -1,9 +1,6 @@
 package ipmsg
 
-import (
-	"net"
-	"testing"
-)
+import "testing"
 
 func TestGetNewPackNum(t *testing.T) {
 	conf := NewIPMSGConf()
@@ -36,8 +33,6 @@ func TestNewIPMSG(t *testing.T) {
 		t.Errorf("client error is not nil '%v'", err)
 	}
 	defer client.Close()
-
-	client.AddBroadCast(net.IPv4(255, 255, 255, 255))
 
 	serverConf := NewIPMSGConf()
 	serverConf.Port = 12425

@@ -28,9 +28,8 @@ func (ev *EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
 	cmd := cd.Command.Mode()
 	evfunc := ev.Handlers[cmd]
 	if evfunc == nil {
-		//err := fmt.Errorf("func for Command(%v) not defined", cmd.String())
-		//return err
-		return nil // just do nothing when handler is undefined
+		// just do nothing when handler is undefined
+		return nil
 	} else {
 		return (evfunc(cd, ipmsg))
 	}

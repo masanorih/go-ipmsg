@@ -12,7 +12,6 @@ type IPMSG struct {
 	ClientData ClientData
 	Conn       *net.UDPConn
 	Conf       *IPMSGConfig
-	Broadcast  []net.IP
 	Handlers   []*EventHandler
 	PacketNum  int
 }
@@ -23,6 +22,7 @@ type IPMSGConfig struct {
 	UserName  string
 	HostName  string
 	Port      int
+	Local     string
 }
 
 const (
@@ -43,8 +43,7 @@ func NewIPMSG(conf *IPMSGConfig) (*IPMSG, error) {
 	}
 	ipmsg.Conf = conf
 	// UDP server
-	service := fmt.Sprintf(":%d", conf.Port)
-	//fmt.Println("service = ", service)
+	service := fmt.Sprintf("%v:%d", conf.Local, conf.Port)
 	udpAddr, err := net.ResolveUDPAddr("udp4", service)
 	if err != nil {
 		return ipmsg, err
@@ -128,12 +127,6 @@ func (ipmsg *IPMSG) AddEventHandler(ev *EventHandler) {
 	sl := ipmsg.Handlers
 	sl = append(sl, ev)
 	ipmsg.Handlers = sl
-}
-
-func (ipmsg *IPMSG) AddBroadCast(ip net.IP) {
-	bc := ipmsg.Broadcast
-	bc = append(bc, ip)
-	ipmsg.Broadcast = bc
 }
 
 func (ipmsg *IPMSG) GetNewPacketNum() int {
