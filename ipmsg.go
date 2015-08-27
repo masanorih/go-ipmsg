@@ -44,7 +44,8 @@ func NewIPMSG(conf *IPMSGConfig) (*IPMSG, error) {
 	ipmsg.Conf = conf
 	// UDP server
 	service := fmt.Sprintf("%v:%d", conf.Local, conf.Port)
-	udpAddr, err := net.ResolveUDPAddr("udp4", service)
+	//fmt.Println("service =", service)
+	udpAddr, err := net.ResolveUDPAddr("udp", service)
 	if err != nil {
 		return ipmsg, err
 	}

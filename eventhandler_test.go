@@ -52,6 +52,11 @@ func TestEventHander(t *testing.T) {
 
 func TestAddEventHandler(t *testing.T) {
 	conf := NewIPMSGConf()
+	laddr, err := getv4loopback()
+	if err != nil {
+		t.Errorf("loopback not found '%v'", err)
+	}
+	conf.Local = laddr
 	ipmsg, err := NewIPMSG(conf)
 	if err != nil {
 		t.Errorf("ipmsg error is not nil '%v'", err)
