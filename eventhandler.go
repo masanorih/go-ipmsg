@@ -33,7 +33,6 @@ func (ev *EventHandler) Run(cd *ClientData, ipmsg *IPMSG) error {
 	} else {
 		return (evfunc(cd, ipmsg))
 	}
-	return nil
 }
 
 func (ev *EventHandler) RunDebug(cd *ClientData) {
